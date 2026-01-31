@@ -139,13 +139,15 @@ fn print_scripts(_package: &PackageJson, scripts: &[(String, String)], names_onl
 }
 
 fn print_list(scripts: &[(String, String)], names_only: bool) {
+    println!();
     for (name, command) in scripts {
         if names_only {
-            println!("{}", name);
+            println!("   {}", name);
         } else {
-            println!("{}: {}", name, command);
+            println!("   {}: {}", name, command);
         }
     }
+    println!();
 }
 
 fn print_json(scripts: &[(String, String)]) -> Result<()> {
@@ -155,7 +157,11 @@ fn print_json(scripts: &[(String, String)]) -> Result<()> {
         .collect();
     
     let json = serde_json::to_string_pretty(&map)?;
-    println!("{}", json);
+    println!();
+    for line in json.lines() {
+        println!("   {}", line);
+    }
+    println!();
     Ok(())
 }
 
