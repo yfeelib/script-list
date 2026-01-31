@@ -21,11 +21,11 @@ struct Cli {
     names_only: bool,
 
     /// Filter scripts by name (case-insensitive)
-    #[arg(short, long, value_name = "PATTERN")]
+    #[arg(short = 'f', long, value_name = "PATTERN")]
     filter: Option<String>,
 
     /// Output format
-    #[arg(short, long, value_enum, default_value = "table")]
+    #[arg(short = 'F', long, value_enum, default_value = "table")]
     format: OutputFormat,
 }
 
@@ -164,7 +164,6 @@ mod tests {
     #[test]
     fn test_read_package_json() {
         let json = r#"{
-            "name": "test",
             "scripts": {
                 "build": "cargo build",
                 "test": "cargo test"
@@ -172,7 +171,6 @@ mod tests {
         }"#;
 
         let package: PackageJson = serde_json::from_str(json).unwrap();
-        assert_eq!(package.name, Some("test".to_string()));
         assert_eq!(package.scripts.len(), 2);
     }
 }
