@@ -98,13 +98,10 @@ fn read_package_json(path: &PathBuf) -> Result<PackageJson> {
                 .unwrap_or("unknown");
             
             eprintln!();
-            eprintln!("{}", format!("📁 {}", dir_name).bold().cyan());
+            eprintln!("{}", dir_name.truecolor(139, 0, 0).bold()); // Dark red
             eprintln!();
-            eprintln!("{}", "⚠️  No package.json found".yellow());
-            eprintln!();
-            eprintln!("{}", "This directory doesn't have a package.json file.".dimmed());
-            eprintln!("{}", "Please run 'sl' in a directory with a package.json file,".dimmed());
-            eprintln!("{}", "or specify the path with: sl --path ./path/to/package.json".dimmed());
+            eprintln!("{}", "No package.json file found:".truecolor(128, 128, 128));
+            eprintln!("{}", format!("  {}", current_dir.as_ref().map(|p| p.display().to_string()).unwrap_or_default()).truecolor(160, 160, 160));
             eprintln!();
             
             std::process::exit(1);
