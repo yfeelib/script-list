@@ -1,4 +1,4 @@
-# 📜 script-list
+# 📜 script-list (sl)
 
 A fast, modern Rust CLI tool to list and display npm scripts from `package.json`.
 
@@ -12,6 +12,7 @@ A fast, modern Rust CLI tool to list and display npm scripts from `package.json`
 - 🔍 **Filter support** - Search scripts by name
 - 📦 **Zero dependencies** - Single binary, no runtime requirements
 - 🖥️ **Cross-platform** - Works on macOS, Linux, and Windows
+- ⚡ **Short command** - Just type `sl`
 
 ## 📦 Installation
 
@@ -31,7 +32,7 @@ Download pre-built binaries from [Releases](https://github.com/yfeelib/script-li
 
 ```bash
 # List all scripts in current directory
-script-list
+sl
 
 # Output:
 # 📦 my-project
@@ -50,33 +51,33 @@ script-list
 
 ```bash
 # Show only scripts containing "test"
-script-list --filter test
+sl --filter test
 
 # Or
-script-list -f build
+sl -f build
 ```
 
 ### Different Formats
 
 ```bash
 # Table format (default)
-script-list --format table
+sl --format table
 
 # Simple list
-script-list --format list
+sl --format list
 
 # JSON output
-script-list --format json
+sl --format json
 ```
 
 ### Other Options
 
 ```bash
 # Show only script names
-script-list --names-only
+sl --names-only
 
 # Use custom package.json path
-script-list --path ./path/to/package.json
+sl --path ./path/to/package.json
 ```
 
 ## 🛠️ Development

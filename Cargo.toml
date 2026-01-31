@@ -10,7 +10,7 @@ keywords = ["npm", "scripts", "cli", "package-json"]
 categories = ["command-line-utilities", "development-tools"]
 
 [[bin]]
-name = "script-list"
+name = "sl"
 path = "src/main.rs"
 
 [dependencies]
