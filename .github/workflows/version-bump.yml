@@ -26,49 +26,40 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Determine Version Bump
+      - name: Determine Version
         id: version
         run: |
           # Get current version
-          CURRENT_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          CURRENT_VERSION=$(grep '^version = ' Cargo.toml | head -d'"' -f2)
           echo "Current version: $CURRENT_VERSION"
           
           MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
           MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
           PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
           
-          # Check commit messages for conventional commits
-          BUMP_TYPE="patch"
+          # Get current year
+          CURRENT_YEAR=$(date +%Y)
           
-          # Get commits since last tag
-          if git describe --tags --abbrev=0 > /dev/null 2>&1; then
-            LAST_TAG=$(git describe --tags --abbrev=0)
-            COMMITS=$(git log "$LAST_TAG"..HEAD --pretty=format:"%s")
-          else
-            COMMITS=$(git log --pretty=format:"%s")
-          fi
-          
-          # Check for breaking changes
-          if echo "$COMMITS" | grep -qE "^[a-z]+(\(.+\))?!:|BREAKING CHANGE"; then
-            BUMP_TYPE="major"
-            MAJOR=$((MAJOR + 1))
+          # Check if year changed for MAJOR bump
+          if [ "$MAJOR" != "$CURRENT_YEAR" ]; then
+            echo "New year detected: $CURRENT_YEAR (was $MAJOR)"
+            MAJOR=$CURRENT_YEAR
             MINOR=0
-            PATCH=0
-          # Check for features
-          elif echo "$COMMITS" | grep -qE "^feat(\(.+\))?:"; then
-            BUMP_TYPE="minor"
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          # Otherwise patch
+            PATCH=1
           else
+            # Increment PATCH
             PATCH=$((PATCH + 1))
+            
+            # If PATCH reaches 100, bump MINOR and reset PATCH
+            if [ $PATCH -ge 100 ]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            fi
           fi
           
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "Bump type: $BUMP_TYPE"
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
 
       - name: Update Version
         run: |
