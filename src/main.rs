@@ -58,7 +58,7 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    let mut scripts: Vec<_> = package.scripts.into_iter().collect();
+    let mut scripts: Vec<_> = package.scripts.clone().into_iter().collect();
 
     // Filter if specified
     if let Some(pattern) = cli.filter {
