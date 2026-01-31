@@ -26,6 +26,12 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
       - name: Determine Version
         id: version
         run: |
@@ -61,9 +67,15 @@ jobs:
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Update Version
+      - name: Update Cargo.toml Version
         run: |
           sed -i '' "s/^version = \".*\"/version = \"${{ steps.version.outputs.new_version }}\"/" Cargo.toml
+
+      - name: Update npm package.json Version
+        run: |
+          cd npm
+          npm version ${{ steps.version.outputs.new_version }} --no-git-tag-version
+          cd ..
 
       - name: Build Release Binary
         run: cargo build --release
@@ -81,7 +93,7 @@ jobs:
 
       - name: Commit Version Update
         run: |
-          git add Cargo.toml
+          git add Cargo.toml npm/package.json
           git commit -m "chore(release): bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
           git push
 
@@ -101,3 +113,10 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm
+        run: |
+          cd npm
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
