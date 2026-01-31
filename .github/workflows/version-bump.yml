@@ -1,4 +1,4 @@
-name: Auto Version Bump
+name: Auto Release
 
 on:
   push:
@@ -7,11 +7,12 @@ on:
       - 'README.md'
       - 'LICENSE'
       - '.github/**'
+      - 'Cargo.lock'
 
 jobs:
-  version-bump:
-    name: Bump Version
-    runs-on: ubuntu-latest
+  release:
+    name: Create Release
+    runs-on: macos-latest
     permissions:
       contents: write
     
@@ -19,44 +20,59 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Bump Version
-        id: bump
+      - name: Determine Version Bump
+        id: version
         run: |
           # Get current version
           CURRENT_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
           echo "Current version: $CURRENT_VERSION"
           
-          # Parse version
           MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
           MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
           PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
           
-          # Increment patch by 100
-          NEW_PATCH=$((PATCH + 100))
-          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+          # Check commit messages for conventional commits
+          BUMP_TYPE="patch"
+          
+          # Get commits since last tag
+          if git describe --tags --abbrev=0 > /dev/null 2>&1; then
+            LAST_TAG=$(git describe --tags --abbrev=0)
+            COMMITS=$(git log "$LAST_TAG"..HEAD --pretty=format:"%s")
+          else
+            COMMITS=$(git log --pretty=format:"%s")
+          fi
+          
+          # Check for breaking changes
+          if echo "$COMMITS" | grep -qE "^[a-z]+(\(.+\))?!:|BREAKING CHANGE"; then
+            BUMP_TYPE="major"
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          # Check for features
+          elif echo "$COMMITS" | grep -qE "^feat(\(.+\))?:"; then
+            BUMP_TYPE="minor"
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          # Otherwise patch
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "Bump type: $BUMP_TYPE"
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          
-          # Update Cargo.toml
-          sed -i "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" Cargo.toml
-          
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Commit and push
-          git add Cargo.toml
-          git commit -m "Bump version to $NEW_VERSION [skip ci]"
-          git push
-          
-          # Create tag
-          git tag "v$NEW_VERSION"
-          git push origin "v$NEW_VERSION"
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+
+      - name: Update Version
+        run: |
+          sed -i '' "s/^version = \".*\"/version = \"${{ steps.version.outputs.new_version }}\"/" Cargo.toml
 
       - name: Build Release Binary
         run: cargo build --release
@@ -64,14 +80,30 @@ jobs:
       - name: Package
         run: |
           cd target/release
-          tar czvf ../../sl-${{ steps.bump.outputs.new_version }}-macos-arm64.tar.gz sl
+          tar czvf ../../sl-v${{ steps.version.outputs.new_version }}-macos-arm64.tar.gz sl
           cd -
 
-      - name: Create Release
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit Version Update
+        run: |
+          git add Cargo.toml
+          git commit -m "chore(release): bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
+          git push
+
+      - name: Create Tag
+        run: |
+          git tag "v${{ steps.version.outputs.new_version }}"
+          git push origin "v${{ steps.version.outputs.new_version }}"
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.bump.outputs.new_version }}
-          name: Release v${{ steps.bump.outputs.new_version }}
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: Release v${{ steps.version.outputs.new_version }}
           files: sl-*.tar.gz
           generate_release_notes: true
           draft: false
