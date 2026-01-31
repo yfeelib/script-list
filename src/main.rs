@@ -98,10 +98,10 @@ fn read_package_json(path: &PathBuf) -> Result<PackageJson> {
                 .unwrap_or("unknown");
             
             eprintln!();
-            eprintln!("{}", dir_name.truecolor(139, 0, 0).bold()); // Dark red
+            eprintln!("        {}", dir_name.truecolor(139, 0, 0).bold()); // Dark red (8 spaces)
             eprintln!();
-            eprintln!("{}", "No package.json file found:".truecolor(128, 128, 128));
-            eprintln!("{}", format!("  {}", current_dir.as_ref().map(|p| p.display().to_string()).unwrap_or_default()).truecolor(160, 160, 160));
+            eprintln!("        {}", "No package.json file found:".truecolor(128, 128, 128)); // 8 spaces
+            eprintln!("          {}", current_dir.as_ref().map(|p| p.display().to_string()).unwrap_or_default().truecolor(160, 160, 160)); // 10 spaces
             eprintln!();
             
             std::process::exit(1);
