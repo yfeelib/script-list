@@ -45,13 +45,17 @@ jobs:
           
           # Get current year
           CURRENT_YEAR=$(date +%Y)
+          START_YEAR=2026
+          
+          # Calculate MAJOR based on year difference from start year
+          EXPECTED_MAJOR=$((CURRENT_YEAR - START_YEAR))
           
           # Check if year changed for MAJOR bump
-          if [ "$MAJOR" != "$CURRENT_YEAR" ]; then
-            echo "New year detected: $CURRENT_YEAR (was $MAJOR)"
-            MAJOR=$CURRENT_YEAR
+          if [ "$MAJOR" != "$EXPECTED_MAJOR" ]; then
+            echo "New year detected: $CURRENT_YEAR (MAJOR: $EXPECTED_MAJOR, was $MAJOR)"
+            MAJOR=$EXPECTED_MAJOR
             MINOR=0
-            PATCH=1
+            PATCH=0
           else
             # Increment PATCH
             PATCH=$((PATCH + 1))

@@ -1,6 +1,6 @@
 {
   "name": "@skyfe79/script-list",
-  "version": "2026.0.0",
+  "version": "0.2.0",
   "description": "A fast Rust CLI tool to list npm scripts from package.json",
   "main": "index.js",
   "bin": {
