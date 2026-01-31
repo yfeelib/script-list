@@ -1,6 +1,6 @@
 [package]
 name = "script-list"
-version = "0.1.300"
+version = "0.2.0"
 edition = "2021"
 authors = ["yfeelib"]
 description = "A Rust CLI tool to list npm scripts from package.json"
